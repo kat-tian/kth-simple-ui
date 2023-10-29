@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local LLM Chat</title>
+    <style>
+        #chatbox {
+            border: 1px solid #ccc;
+            height: 300px;
+            padding: 10px;
+            overflow-y: scroll;
+        }
+        #userInput {
+            width: 80%;
+        }
+        .ai-response-box {
+            border: 1px solid #ccc;
+            padding: 5px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="chatbox"></div>
+    
+    <div>
+        <textarea id="userInput" placeholder="Enter your text..."></textarea>
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const userInputElem = document.getElementById('userInput');
+            const chatboxElem = document.getElementById('chatbox');
+
+            // Append user's message to chatbox
+            chatboxElem.innerHTML += `<b>User:</b> ${userInputElem.value}<br>`;
+
+            const response = await fetch('/send_text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userInputElem.value })
+            });
+
+            const responseData = await response.json();
+
+            // Append AI's response to chatbox with "Send to student" and "Edit" buttons
+            chatboxElem.innerHTML += `
+                <div class="ai-response-box">
+                    <b>AI:</b> <span id="aiResponse">${responseData.response}</span>
+                    <button onclick="sendToStudent()">Send to student</button>
+                    <button onclick="editMessage()">Edit</button>
+                </div><br>`;
+            
+            // Clear user input
+            userInputElem.value = '';
+
+            // Auto-scroll to bottom
+            chatboxElem.scrollTop = chatboxElem.scrollHeight;
+        }
+
+        function sendToStudent() {
+            const aiResponse = document.getElementById('aiResponse').innerText;
+            console.log(aiResponse);  // Print the AI's response to the browser's console
+        }
+
+        function editMessage() {
+            const aiResponse = document.getElementById('aiResponse');
+            const newValue = prompt("Edit the message:", aiResponse.innerText);
+            if (newValue) {
+                aiResponse.innerText = newValue;
+            }
+        }
+
+    </script>
+</body>
+</html>
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local LLM Chat</title>
+    <style>
+        #chatbox {
+            border: 1px solid #ccc;
+            height: 300px;
+            padding: 10px;
+            overflow-y: scroll;
+        }
+        #userInput {
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+    <div id="chatbox"></div>
+    
+    <div>
+        <textarea id="userInput" placeholder="Enter your text..."></textarea>
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const userInputElem = document.getElementById('userInput');
+            const chatboxElem = document.getElementById('chatbox');
+
+            // Append user's message to chatbox
+            chatboxElem.innerHTML += `<b>User:</b> ${userInputElem.value}<br>`;
+
+            const response = await fetch('/send_text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userInputElem.value })
+            });
+
+            const responseData = await response.json();
+
+            // Append AI's response to chatbox
+            chatboxElem.innerHTML += `<b>AI:</b> ${responseData.response}<br>`;
+            
+            // Clear user input
+            userInputElem.value = '';
+
+            // Auto-scroll to bottom
+            chatboxElem.scrollTop = chatboxElem.scrollHeight;
+        }
+    </script>
+</body>
+</html> -->
