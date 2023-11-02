@@ -24,13 +24,25 @@
 </head>
 <body>
     <div id="chatbox"></div>
-    
+
+    <!-- Edit Modal -->
+    <div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:10;">
+        <div style="background-color:#fff; margin:15% auto; padding:20px; border:1px solid #888; width:50%;">
+            <p>Edit the message:</p>
+            <textarea id="modalInput" style="width:90%; height:100px;"></textarea><br>
+            <button onclick="saveEdit()">Save</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
     <div>
         <textarea id="userInput" placeholder="Enter your text..."></textarea>
         <button onclick="sendMessage()">Send</button>
     </div>
 
     <script>
+        let responseCount = 0;  // Keep a count to assign unique IDs
+
         async function sendMessage() {
             const userInputElem = document.getElementById('userInput');
             const chatboxElem = document.getElementById('chatbox');
@@ -48,12 +60,15 @@
 
             const responseData = await response.json();
 
+            responseCount++;  // Increment for a new response
+            const aiResponseID = "aiResponse" + responseCount; // Create a unique ID for each AI response
+
             // Append AI's response to chatbox with "Send to student" and "Edit" buttons
             chatboxElem.innerHTML += `
                 <div class="ai-response-box">
-                    <b>AI:</b> <span id="aiResponse">${responseData.response}</span>
-                    <button onclick="sendToStudent()">Send to student</button>
-                    <button onclick="editMessage()">Edit</button>
+                    <b>AI:</b> <span id="${aiResponseID}">${responseData.response}</span>
+                    <button onclick="sendToStudent('${aiResponseID}')">Send to student</button>
+                    <button onclick="editMessage('${aiResponseID}')">Edit</button>
                 </div><br>`;
             
             // Clear user input
@@ -63,81 +78,31 @@
             chatboxElem.scrollTop = chatboxElem.scrollHeight;
         }
 
-        function sendToStudent() {
-            const aiResponse = document.getElementById('aiResponse').innerText;
+        let currentEditingElementID = null; // This will keep the ID of the currently editing AI response
+
+        function editMessage(responseID) {
+            const aiResponse = document.getElementById(responseID);
+            currentEditingElementID = responseID; // save the ID
+            document.getElementById('modalInput').value = aiResponse.innerText;
+            document.getElementById('editModal').style.display = 'block'; // Show the modal
+        }
+
+        function saveEdit() {
+            const newValue = document.getElementById('modalInput').value;
+            if (newValue && currentEditingElementID) {
+                document.getElementById(currentEditingElementID).innerText = newValue;
+            }
+            closeModal(); // Close the modal
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none'; // Hide the modal
+        }
+
+        function sendToStudent(responseID) {
+            const aiResponse = document.getElementById(responseID).innerText;
             console.log(aiResponse);  // Print the AI's response to the browser's console
         }
-
-        function editMessage() {
-            const aiResponse = document.getElementById('aiResponse');
-            const newValue = prompt("Edit the message:", aiResponse.innerText);
-            if (newValue) {
-                aiResponse.innerText = newValue;
-            }
-        }
-
     </script>
 </body>
 </html>
-
-
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local LLM Chat</title>
-    <style>
-        #chatbox {
-            border: 1px solid #ccc;
-            height: 300px;
-            padding: 10px;
-            overflow-y: scroll;
-        }
-        #userInput {
-            width: 80%;
-        }
-    </style>
-</head>
-<body>
-    <div id="chatbox"></div>
-    
-    <div>
-        <textarea id="userInput" placeholder="Enter your text..."></textarea>
-        <button onclick="sendMessage()">Send</button>
-    </div>
-
-    <script>
-        async function sendMessage() {
-            const userInputElem = document.getElementById('userInput');
-            const chatboxElem = document.getElementById('chatbox');
-
-            // Append user's message to chatbox
-            chatboxElem.innerHTML += `<b>User:</b> ${userInputElem.value}<br>`;
-
-            const response = await fetch('/send_text', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message: userInputElem.value })
-            });
-
-            const responseData = await response.json();
-
-            // Append AI's response to chatbox
-            chatboxElem.innerHTML += `<b>AI:</b> ${responseData.response}<br>`;
-            
-            // Clear user input
-            userInputElem.value = '';
-
-            // Auto-scroll to bottom
-            chatboxElem.scrollTop = chatboxElem.scrollHeight;
-        }
-    </script>
-</body>
-</html> -->
-
-
-<!-- test -->
