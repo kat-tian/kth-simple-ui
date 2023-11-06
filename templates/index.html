@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,22 +12,84 @@
             padding: 10px;
             overflow-y: scroll;
         }
+
         #userInput {
             width: 80%;
         }
+
         .ai-response-box {
             border: 1px solid #ccc;
             padding: 5px;
             display: inline-block;
             margin: 5px 0;
         }
+
+        /* Basic styling for the aiSuggest overlay */
+        #aiSuggest {
+            position: fixed;
+            /* Sit on top of the page content */
+            display: none;
+            /* Hidden by default */
+            width: 200px;
+            /* Full width (cover the whole page) */
+            min-height: 200px;
+            /* Full height (cover the whole page) */
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            /* Black background with opacity */
+            z-index: 2;
+            /* Specify a stack order in case you're using a different order for other elements */
+            cursor: pointer;
+            /* Add a pointer on hover */
+            align-items: center;
+            /* Center content vertically */
+            justify-content: center;
+            /* Center content horizontally */
+        }
+
+        /* Content within the overlay */
+        #aiSuggestContent {
+            text-align: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        /* Spinner Style */
+        .spinner {
+            margin: auto;
+            /* Align spinner in the center of the overlay */
+            border: 5px solid #f3f3f3;
+            /* Light grey */
+            border-top: 5px solid #3498db;
+            /* Blue */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
+
 <body>
-    <div id="chatbox"></div>
+    <!-- <div id="chatbox"></div> -->
+
+    <!-- Mattecoach iframe -->
+    <iframe id="mcIframe" src="" style="position:fixed;border:0;height:100%;min-height:100%;width:100vw;"></iframe>
 
     <!-- Edit Modal -->
-    <div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:10;">
+    <div id="editModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:10;">
         <div style="background-color:#fff; margin:15% auto; padding:20px; border:1px solid #888; width:50%;">
             <p>Edit the message:</p>
             <textarea id="modalInput" style="width:90%; height:100px;"></textarea><br>
@@ -35,10 +98,70 @@
         </div>
     </div>
 
-    <div>
+    <div id="aiSuggest" >
+        <div id="aiSuggestBox">
+            <div id="aiSuggestContent" style="margin-bottom: 20px;">
+                <!-- Loading spinner or text will be added here -->
+            </div>
+            <!-- Close Button -->
+            <div style="position: absolute; top: 10px; right: 10px; cursor: pointer; color: white;" onclick="closeAiSuggest()">
+                X
+            </div>
+            <!-- Send and Edit Buttons -->
+            <button onclick="sendSuggestion()" style="padding: 10px 20px; margin-right: 10px; cursor: pointer;">Send</button>
+            <button onclick="editSuggestion()" style="padding: 10px 20px; cursor: pointer;">Edit</button>
+        </div>
+    </div>
+    
+
+    <!-- <div>
         <textarea id="userInput" placeholder="Enter your text..."></textarea>
         <button onclick="sendMessage()">Send</button>
-    </div>
+    </div> -->
+
+    <script>
+
+        function editSuggestion(){
+            const aiSuggestContent = document.getElementById('aiSuggestContent');
+            let message = aiSuggestContent.innerText;
+            editMessage(message);
+        }
+
+        function updateUi(text) {
+            const aiSuggestContent = document.getElementById('aiSuggestContent');
+            aiSuggestContent.innerHTML = text; // Update text
+            aiSuggest.style.display = "flex";
+            stopLoading(); // Stop loading when text is updated
+        }
+        function closeAiSuggest(){
+            const aiSuggest = document.getElementById('aiSuggest');
+            aiSuggest.style.display = "none";
+
+        }
+
+        function sendSuggestion(){
+            const aiSuggestContent = document.getElementById('aiSuggestContent');
+            let message = aiSuggestContent.innerText;
+            console.log(message);
+            SendMessageToChat(message);
+            const aiSuggest = document.getElementById('aiSuggest');
+            aiSuggest.style.display = "none";
+        }
+
+        function startLoading() {
+            const aiSuggest = document.getElementById('aiSuggest');
+            const aiSuggestContent = document.getElementById('aiSuggestContent');
+            aiSuggestContent.innerHTML = "";
+            aiSuggest.style.display = 'flex'; // Show overlay
+            aiSuggestContent.innerHTML = '<div id="loadingAi" class="spinner"></div>'; // Show spinner
+        }
+
+        function stopLoading() {
+            const loadSuggest = document.getElementById('loadingAi');
+            loadSuggest.remove();
+            
+        }
+    </script>
 
     <script>
         let responseCount = 0;  // Keep a count to assign unique IDs
@@ -70,7 +193,7 @@
                     <button onclick="sendToStudent('${aiResponseID}')">Send to student</button>
                     <button onclick="editMessage('${aiResponseID}')">Edit</button>
                 </div><br>`;
-            
+
             // Clear user input
             userInputElem.value = '';
 
@@ -80,29 +203,173 @@
 
         let currentEditingElementID = null; // This will keep the ID of the currently editing AI response
 
-        function editMessage(responseID) {
-            const aiResponse = document.getElementById(responseID);
-            currentEditingElementID = responseID; // save the ID
-            document.getElementById('modalInput').value = aiResponse.innerText;
+        function editMessage(message) {
+            document.getElementById('modalInput').value = message;
             document.getElementById('editModal').style.display = 'block'; // Show the modal
         }
 
         function saveEdit() {
             const newValue = document.getElementById('modalInput').value;
-            if (newValue && currentEditingElementID) {
-                document.getElementById(currentEditingElementID).innerText = newValue;
-            }
+                document.getElementById("aiSuggestContent").innerText = newValue;
             closeModal(); // Close the modal
         }
 
         function closeModal() {
             document.getElementById('editModal').style.display = 'none'; // Hide the modal
         }
-
-        function sendToStudent(responseID) {
-            const aiResponse = document.getElementById(responseID).innerText;
-            console.log(aiResponse);  // Print the AI's response to the browser's console
-        }
     </script>
+
+    <script>
+
+        function SendMessageToChat(message) {
+            // send as message to child iframe or another window
+            document.getElementById('mcIframe').contentWindow.postMessage({
+                event_type: 'chat_message',
+                data: message
+            },
+                "*");
+        }
+
+    </script>
+
+
+    <!-- 2) Mattecoach handling -->
+
+    <script>
+
+        // Function to extract chat data
+
+        // change tab title
+        window.addEventListener("visibilitychange", function (event) {
+            if (!document.hidden) {
+                document.title = 'Mattecoach'
+            }
+        })
+
+        // receive message from chat
+        window.addEventListener('message', function (event) {
+            if (document.hidden) {
+                if (event.data.event_id === 'my_cors_message') { // receive message
+                    document.title = event.data.data.v1;
+
+
+                    sendToAi(event.data.data.v1);
+
+
+                }
+            }
+            /*if (event.data.event_id === 'end_session') {
+                let currentTimeInMilliseconds = parseInt(event.data.data.v1);
+            }*/
+        });
+
+        function read_params() {
+
+            // this needs to be set to the correct version (production/live system or test system)
+            const tokenId = 'bILVQqVG'; // this is id for a test instance - can also be set by parameter 'key'
+
+            const params = window.location.search.substring(1);
+            const url_string = window.location.href;
+            const url = new URL(url_string);
+            const key = url.searchParams.get("key");
+            const name = url.searchParams.get("name");
+            const course = url.searchParams.get("course");
+            const comment = url.searchParams.get("comment");
+            const id = url.searchParams.get("id");
+            const region = url.searchParams.get("region");
+            const region2 = url.searchParams.get("region2");
+
+            let iframe_url = "https://talkmath.org/roomY/";
+
+            if (key !== null && key !== '') {
+                iframe_url += key
+            }
+            else {
+                iframe_url += tokenId;
+            }
+
+            iframe_url += '?token=mattecoach&tokenid=' + tokenId + '&help=true&course=' + course + '&comment=' + comment + '&name=' + name + '&region=' + region + '&realregion=' + region2 + '&id=' + id;
+            document.getElementById('mcIframe').src = iframe_url
+        }
+
+        read_params();
+
+    </script>
+
+    <script>
+        // Assuming that INITIAL_PROMPT, MAX_TURNS_BEFORE_REPROMPT, and MAX_TURNS
+        // are defined elsewhere in your script or HTML
+        const conversation_history = [];
+
+        let user_turns_since_last_prompt = 0;
+        let INITIAL_PROMPT = `"Du är en svensk mattelärare. "
+                  "Om det är en mattefråga, guida eleverna genom att ställa uppföljande frågor."
+                  "Annars, svara direkt. Alltid svara på svenska."
+                  "Undvik hälsningar.`;
+
+        const MAX_TURNS_BEFORE_REPROMPT = 5
+        const MAX_TURNS = 10
+
+        function sendToAi(userMessage) {
+            startLoading();
+            userMessage += " (svara ENDAST på svenska. Var kortfattad; svara med en eller två meningar om möjligt.)";
+            conversation_history.push({ "role": "user", "content": userMessage });
+
+            user_turns_since_last_prompt++;
+
+            // Reprompt every MAX_TURNS_BEFORE_REPROMPT user turns
+            if (user_turns_since_last_prompt >= MAX_TURNS_BEFORE_REPROMPT) {
+                conversation_history.unshift({ "role": "system", "content": INITIAL_PROMPT });
+                user_turns_since_last_prompt = 0; // Reset the counter
+            }
+
+            // Prepare request data
+            const requestData = {
+                inputs: [conversation_history],
+                parameters: { "max_new_tokens": 80, "temperature": 0.0 } // Reduced tokens for conciseness
+            };
+
+            // Send request to LLM
+            fetch("https://17zayxht82.execute-api.eu-west-1.amazonaws.com/llama2-test/generate", {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Amzn-SageMaker-Custom-Attributes": "accept_eula=true"
+                },
+                body: JSON.stringify(requestData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    let aiResponse = "";
+                    if (Array.isArray(data) && data.length > 0) {
+                        aiResponse = data[0].generation ? data[0].generation.content : "";
+                    }
+
+                    // Append assistant's response to conversation history
+                    conversation_history.push({ "role": "assistant", "content": aiResponse });
+
+                    // Maintain a window of the latest turns
+                    while (conversation_history.length > MAX_TURNS) {
+                        conversation_history.shift();
+                    }
+
+                    // Handle the response here, e.g., update the UI
+                    console.log(aiResponse); // For demonstration purposes
+
+                    updateUi(aiResponse);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    updateUi("error!");
+                });
+        }
+
+    // Example of calling sendText with a user message
+    // sendText("Hej, hur mår du?");
+
+    </script>
+
+
 </body>
+
 </html>

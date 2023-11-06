@@ -23,7 +23,7 @@ def send_text():
     global conversation_history, user_turns_since_last_prompt
     data = request.json
     
-    user_message = data["message"] + " (svara ENDAST på svenska. Var koncis; svara med en eller två meningar om möjligt.)"
+    user_message = data["message"] + " (svara ENDAST på svenska. Var kortfattad; svara med en eller två meningar om möjligt.)"
     conversation_history.append({"role": "user", "content": user_message})
 
     user_turns_since_last_prompt += 1
