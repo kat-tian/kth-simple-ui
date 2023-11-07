@@ -20,11 +20,12 @@ def index():
 
 @app.route('/send_text', methods=['POST'])
 def send_text():
-    global conversation_history, user_turns_since_last_prompt
+    global user_turns_since_last_prompt
     data = request.json
     
-    user_message = data["message"] + " (svara ENDAST på svenska. Var kortfattad; svara med en eller två meningar om möjligt.)"
-    conversation_history.append({"role": "user", "content": user_message})
+    # user_message = data["message"] + " (svara ENDAST på svenska. Var kortfattad; svara med en eller två meningar om möjligt.)"
+    conversation_history = data["messages"]
+    # conversation_history.append({"role": "user", "content": user_message})
 
     user_turns_since_last_prompt += 1
 
@@ -42,7 +43,7 @@ def send_text():
         },
         json={
             "inputs": [conversation_history],
-            "parameters": {"max_new_tokens": 80, "temperature": 0.05}  # Reduced tokens for conciseness
+            "parameters": {"max_new_tokens": 200, "temperature": 0.05}  # Reduced tokens for conciseness
         }
     )
 
@@ -55,6 +56,7 @@ def send_text():
     while len(conversation_history) > MAX_TURNS:
         conversation_history.pop(0)  # Maintain a window of the latest turns
 
+    print(ai_response)
     return jsonify({"response": ai_response})
 
 if __name__ == '__main__':
