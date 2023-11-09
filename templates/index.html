@@ -27,26 +27,18 @@
         /* Basic styling for the aiSuggest overlay */
         #aiSuggest {
             position: fixed;
-            /* Sit on top of the page content */
             display: none;
-            /* Hidden by default */
             width: 200px;
-            /* Full width (cover the whole page) */
             min-height: 200px;
-            /* Full height (cover the whole page) */
             top: 0;
             left: 0;
-            margin-left: 375px; 
+            margin-left: 375px;
             background-color: rgba(0, 0, 0, 0.8);
-            /* Black background with opacity */
             z-index: 2;
-            /* Specify a stack order in case you're using a different order for other elements */
             cursor: pointer;
-            /* Add a pointer on hover */
             align-items: center;
-            /* Center content vertically */
             justify-content: center;
-            /* Center content horizontally */
+
         }
 
         /* Content within the overlay */
@@ -86,7 +78,7 @@
     <!-- <div id="chatbox"></div> -->
     <!-- Mattecoach iframe -->
     <iframe id="mcIframe" src="" style="position:fixed;border:0;height:100%;min-height:100%;width:100vw;"></iframe>
-    
+
 
     <!-- Edit Modal -->
     <div id="editModal"
@@ -99,30 +91,27 @@
         </div>
     </div>
 
-    <div id="aiSuggest" >
+    <div id="aiSuggest">
         <div id="aiSuggestBox">
             <div id="aiSuggestContent" style="margin-bottom: 20px;">
                 <!-- Loading spinner or text will be added here -->
             </div>
             <!-- Close Button -->
-            <div style="position: absolute; top: 10px; right: 10px; cursor: pointer; color: white;" onclick="closeAiSuggest()">
+            <div style="position: absolute; top: 10px; right: 10px; cursor: pointer; color: white;"
+                onclick="closeAiSuggest()">
                 X
             </div>
             <!-- Send and Edit Buttons -->
-            <button onclick="sendSuggestion()" style="padding: 10px 20px; margin-right: 10px; cursor: pointer;">Send</button>
+            <button onclick="sendSuggestion()"
+                style="padding: 10px 20px; margin-right: 10px; cursor: pointer;">Send</button>
             <button onclick="editSuggestion()" style="padding: 10px 20px; cursor: pointer;">Edit</button>
         </div>
     </div>
-    
 
-    <!-- <div>
-        <textarea id="userInput" placeholder="Enter your text..."></textarea>
-        <button onclick="sendMessage()">Send</button>
-    </div> -->
 
     <script>
 
-        function editSuggestion(){
+        function editSuggestion() {
             const aiSuggestContent = document.getElementById('aiSuggestContent');
             let message = aiSuggestContent.innerText;
             editMessage(message);
@@ -134,13 +123,13 @@
             aiSuggest.style.display = "flex";
             stopLoading(); // Stop loading when text is updated
         }
-        function closeAiSuggest(){
+        function closeAiSuggest() {
             const aiSuggest = document.getElementById('aiSuggest');
             aiSuggest.style.display = "none";
 
         }
 
-        function sendSuggestion(){
+        function sendSuggestion() {
             const aiSuggestContent = document.getElementById('aiSuggestContent');
             let message = aiSuggestContent.innerText;
             console.log(message);
@@ -161,7 +150,7 @@
             const loadSuggest = document.getElementById('loadingAi');
 
             loadSuggest?.remove();
-            
+
         }
     </script>
 
@@ -212,7 +201,7 @@
 
         function saveEdit() {
             const newValue = document.getElementById('modalInput').value;
-                document.getElementById("aiSuggestContent").innerText = newValue;
+            document.getElementById("aiSuggestContent").innerText = newValue;
             closeModal(); // Close the modal
         }
 
@@ -260,9 +249,6 @@
 
                 }
             }
-            /*if (event.data.event_id === 'end_session') {
-                let currentTimeInMilliseconds = parseInt(event.data.data.v1);
-            }*/
         });
 
         function read_params() {
@@ -328,30 +314,21 @@
             // Prepare request data
             const requestData = {
                 inputs: [conversation_history],
-                parameters: { "max_new_tokens": 80, "temperature": 0.0 } // Reduced tokens for conciseness
+                parameters: { "max_new_tokens": 80, "temperature": 0.1 }
             };
 
-            // Send request to LLM
-            // fetch("https://17zayxht82.execute-api.eu-west-1.amazonaws.com/llama2-test/generate", {
-            //     method: 'POST',
-            //     headers: {
-            //         "Content-Type": "application/json",
-            //         "X-Amzn-SageMaker-Custom-Attributes": "accept_eula=true"
-            //     },
-            //     body: JSON.stringify(requestData)
-            // })
             fetch('/send_text', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ messages:  conversation_history})
+                body: JSON.stringify({ messages: conversation_history })
             })
                 .then(response => response.json())
                 .then(data => {
                     console.log("DATA", data);
                     let aiResponse = data.response;
-                    
+
 
                     // Append assistant's response to conversation history
                     conversation_history.push({ "role": "assistant", "content": aiResponse });
@@ -362,7 +339,7 @@
                     }
 
                     // Handle the response here, e.g., update the UI
-                    console.log(aiResponse); // For demonstration purposes
+                    console.log(aiResponse);
 
                     updateUi(aiResponse);
                 })
