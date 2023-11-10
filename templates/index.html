@@ -110,7 +110,7 @@
 
 
     <script>
-
+        // FUNCTIONS TO DO WITH HTML
         function editSuggestion() {
             const aiSuggestContent = document.getElementById('aiSuggestContent');
             let message = aiSuggestContent.innerText;
@@ -155,44 +155,7 @@
     </script>
 
     <script>
-        let responseCount = 0;  // Keep a count to assign unique IDs
 
-        async function sendMessage() {
-            const userInputElem = document.getElementById('userInput');
-            const chatboxElem = document.getElementById('chatbox');
-
-            // Append user's message to chatbox
-            chatboxElem.innerHTML += `<b>User:</b> ${userInputElem.value}<br>`;
-
-            const response = await fetch('/send_text', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message: userInputElem.value })
-            });
-
-            const responseData = await response.json();
-
-            responseCount++;  // Increment for a new response
-            const aiResponseID = "aiResponse" + responseCount; // Create a unique ID for each AI response
-
-            // Append AI's response to chatbox with "Send to student" and "Edit" buttons
-            chatboxElem.innerHTML += `
-                <div class="ai-response-box">
-                    <b>AI:</b> <span id="${aiResponseID}">${responseData.response}</span>
-                    <button onclick="sendToStudent('${aiResponseID}')">Send to student</button>
-                    <button onclick="editMessage('${aiResponseID}')">Edit</button>
-                </div><br>`;
-
-            // Clear user input
-            userInputElem.value = '';
-
-            // Auto-scroll to bottom
-            chatboxElem.scrollTop = chatboxElem.scrollHeight;
-        }
-
-        let currentEditingElementID = null; // This will keep the ID of the currently editing AI response
 
         function editMessage(message) {
             document.getElementById('modalInput').value = message;
@@ -251,6 +214,7 @@
             }
         });
 
+        // Get the name of user etc
         function read_params() {
 
             // this needs to be set to the correct version (production/live system or test system)
@@ -290,33 +254,35 @@
         const conversation_history = [];
 
         let user_turns_since_last_prompt = 0;
-        let INITIAL_PROMPT = `"Du är en svensk mattelärare. "
-                  "Om det är en mattefråga, guida eleverna genom att ställa uppföljande frågor."
-                  "Annars, svara direkt. Alltid svara på svenska."
-                  "Undvik hälsningar.`;
+        let INITIAL_PROMPT = `Du är en AI-assistent specialiserad på matematik. 
+        Svara på svenska och använd pedagogiska ledande frågor istället för direkta svar på matteproblem. 
+        Var koncis i dina svar, använd en eller två meningar.`;
 
-        const MAX_TURNS_BEFORE_REPROMPT = 5
+        const MAX_TURNS_BEFORE_REPROMPT = 4
         const MAX_TURNS = 10
 
         function sendToAi(userMessage) {
             startLoading();
-            userMessage += " (svara ENDAST på svenska. Var kortfattad; svara med en eller två meningar om möjligt.)";
+
+            // Maintain a window of the latest turns
+            while (conversation_history.length > MAX_TURNS) {
+                conversation_history.shift();
+            }
+
+            userMessage += "(Svara endast på svenska, aldrig på engelska, enbart på svenska.)";
             conversation_history.push({ "role": "user", "content": userMessage });
 
             user_turns_since_last_prompt++;
 
             // Reprompt every MAX_TURNS_BEFORE_REPROMPT user turns
             if (user_turns_since_last_prompt >= MAX_TURNS_BEFORE_REPROMPT) {
-                conversation_history.unshift({ "role": "system", "content": INITIAL_PROMPT });
+                conversation_history.unshift({ "role": "system", "content": INITIAL_PROMPT }); // Add inital prompt to start of list
                 user_turns_since_last_prompt = 0; // Reset the counter
             }
 
-            // Prepare request data
-            const requestData = {
-                inputs: [conversation_history],
-                parameters: { "max_new_tokens": 80, "temperature": 0.1 }
-            };
+            console.log("conversation_history!!!!---->", conversation_history);
 
+            // Send to app.py
             fetch('/send_text', {
                 method: 'POST',
                 headers: {
@@ -328,19 +294,8 @@
                 .then(data => {
                     console.log("DATA", data);
                     let aiResponse = data.response;
-
-
                     // Append assistant's response to conversation history
                     conversation_history.push({ "role": "assistant", "content": aiResponse });
-
-                    // Maintain a window of the latest turns
-                    while (conversation_history.length > MAX_TURNS) {
-                        conversation_history.shift();
-                    }
-
-                    // Handle the response here, e.g., update the UI
-                    console.log(aiResponse);
-
                     updateUi(aiResponse);
                 })
                 .catch(error => {
@@ -348,10 +303,6 @@
                     updateUi("error!");
                 });
         }
-
-    // Example of calling sendText with a user message
-    // sendText("Hej, hur mår du?");
-    // sendToAi("Do you like fotball?");
 
     </script>
 

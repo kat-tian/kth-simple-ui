@@ -20,21 +20,12 @@ def index():
 
 @app.route('/send_text', methods=['POST'])
 def send_text():
-    global user_turns_since_last_prompt
+    
     data = request.json
     
-    # user_message = data["message"] + " (svara ENDAST på svenska. Var kortfattad; svara med en eller två meningar om möjligt.)"
+
     conversation_history = data["messages"]
-    # conversation_history.append({"role": "user", "content": user_message})
 
-    user_turns_since_last_prompt += 1
-
-    # Reprompt every MAX_TURNS_BEFORE_REPROMPT user turns
-    if user_turns_since_last_prompt >= MAX_TURNS_BEFORE_REPROMPT:
-        conversation_history.insert(0, {"role": "system", "content": INITIAL_PROMPT})
-        user_turns_since_last_prompt = 0  # Reset the counter
-
-    # Send request to LLM with a modified max_new_tokens
     response = requests.post(
         "https://17zayxht82.execute-api.eu-west-1.amazonaws.com/llama2-test/generate",
         headers={
