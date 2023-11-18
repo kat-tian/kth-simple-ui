@@ -202,8 +202,8 @@
 
         // receive message from chat
         window.addEventListener('message', function (event) {
-            if (document.hidden) {
                 if (event.data.event_id === 'my_cors_message') { // receive message
+                    if (document.hidden) {
                     document.title = event.data.data.v1;
 
 
@@ -218,7 +218,7 @@
         function read_params() {
 
             // this needs to be set to the correct version (production/live system or test system)
-            const tokenId = 'bILVQqVG'; // this is id for a test instance - can also be set by parameter 'key'
+            const tokenId = 'gEFZhL8t'; // this is id for a test instance - can also be set by parameter 'key'
 
             const params = window.location.search.substring(1);
             const url_string = window.location.href;
