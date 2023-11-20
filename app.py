@@ -1,12 +1,15 @@
 from flask import Flask, request, jsonify, render_template
 import requests
+import os
+
 
 app = Flask(__name__)
 
 conversation_history = []
 
+         #   "Om det är en mattefråga, guida eleverna genom att ställa uppföljande frågor."
 INITIAL_PROMPT = ("Du är en svensk mattelärare. "
-                  "Om det är en mattefråga, guida eleverna genom att ställa uppföljande frågor."
+                  "Ge inte svar på matematikfrågor direkt, utan ställ vägledande frågor för att hjälpa eleverna att lösa det själva."
                   "Annars, svara direkt. Alltid svara på svenska."
                   "Undvik hälsningar.")
 
@@ -51,4 +54,6 @@ def send_text():
     return jsonify({"response": ai_response})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 80))
+    app.run(debug=True, host='0.0.0.0', port=port)
+
