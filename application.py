@@ -3,7 +3,7 @@ import requests
 import os
 
 
-app = Flask(__name__)
+application = Flask(__name__)
 
 conversation_history = []
 
@@ -17,11 +17,11 @@ user_turns_since_last_prompt = 0
 MAX_TURNS_BEFORE_REPROMPT = 5
 MAX_TURNS = 10
 
-@app.route('/')
+@application.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/send_text', methods=['POST'])
+@application.route('/send_text', methods=['POST'])
 def send_text():
     
     data = request.json
@@ -55,5 +55,5 @@ def send_text():
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    application.run(debug=True, host='0.0.0.0', port=port)
 
